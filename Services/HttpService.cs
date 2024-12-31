@@ -7,12 +7,12 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace NfeToPdf.Controllers
+namespace PIX_BancoDoBrasil.Services
 {
     /// <summary>
     /// HttpService
     /// </summary>
-    public class HttpService : IDisposable
+    public class HttpService 
     {
         private string _url;
         private string _codAcesso;
@@ -98,7 +98,7 @@ namespace NfeToPdf.Controllers
             _resultBodyString = true;
         }
 
-        public HttpService(string codAcesso)
+        public HttpService(string codAcesso, string nomeFuncao)
         {
             _codAcesso = codAcesso;
             _timeout = 15;
@@ -112,8 +112,8 @@ namespace NfeToPdf.Controllers
         }
         private async Task<Retorno> ExecuteGetAsync()
         {
-            var retorno = new Retorno();
-            var acessosExternos = new AcessosExternos();
+            Retorno retorno = new Retorno();
+            AcessosExternos acessosExternos = new AcessosExternos();
             string codAcessoExterno = acessosExternos.Inserir(_codAcesso, _url, _content);
 
             HttpClient httpClient = null;
@@ -381,6 +381,144 @@ namespace NfeToPdf.Controllers
             return retorno;
         }
 
+
+        public Retorno ExecutePut()
+        {
+            Retorno retorno = ExecutePutAsync().Result;
+            return retorno;
+        }
+        private async Task<Retorno> ExecutePutAsync()
+        {
+            Retorno retorno = new Retorno();
+            DateTime dataInicio = DateTime.Now;
+            AcessosExternos acessosExternos = new AcessosExternos();
+            string codAcessoExterno = acessosExternos.Inserir(_codAcesso, _url, _content);
+
+            //HttpClient httpClient = new HttpClient();
+            HttpClient httpClient = new HttpClient(new HttpClientHandler { UseCookies = false });
+
+            try
+            {
+                httpClient.BaseAddress = new Uri(_url);
+            }
+            catch (Exception ex)
+            {
+                retorno.Erro = true;
+                retorno.MensagemErro = "Erro consultando externo.";
+
+                acessosExternos.Atualizar(codAcessoExterno, "Set BaseAddress", 404);
+                return retorno;
+            }
+
+            if (_authenticationHeader != null)
+            {
+                httpClient.DefaultRequestHeaders.Authorization = _authenticationHeader;
+            }
+
+            if ((_headersAccept != null) || (_headers != null))
+            {
+                httpClient.DefaultRequestHeaders.Accept.Clear();
+
+                if (_headersAccept != null)
+                {
+                    foreach (MediaTypeWithQualityHeaderValue headerAccept in _headersAccept)
+                    {
+                        httpClient.DefaultRequestHeaders.Accept.Add(headerAccept);
+                    }
+                }
+                if (_headers != null)
+                {
+                    foreach (KeyValuePair<string, string> header in _headers)
+                    {
+                        httpClient.DefaultRequestHeaders.Add(header.Key, header.Value);
+                    }
+                }
+            }
+
+            HttpResponseMessage response = null;
+            string responseBody = "";
+            byte[] responseBodyArrayByte = null;
+            try
+            {
+                httpClient.Timeout = TimeSpan.FromMinutes(_timeout);
+                response = httpClient.PutAsync(_url, _stringContent).Result;
+            }
+            catch (Exception ex)
+            {
+                if (ex.InnerException.ToString().Contains("TaskCanceledException"))
+                {
+                    retorno.Erro = true;
+                    retorno.MensagemErro = "Erro consultando externo.";
+
+                    acessosExternos.Atualizar(codAcessoExterno, "TaskCanceledException", 404);
+                }
+                else if (ex.InnerException.ToString().Contains("O nome remoto não pôde ser resolvido"))
+                {
+                    retorno.Erro = true;
+                    retorno.MensagemErro = "Erro consultando externo.";
+
+                    acessosExternos.Atualizar(codAcessoExterno, "O nome remoto não pôde ser resolvido", 404);
+                }
+                else if (ex.InnerException.ToString().Contains("Impossível conectar-se ao servidor remoto"))
+                {
+                    retorno.Erro = true;
+                    retorno.MensagemErro = "Erro consultando externo.";
+
+                    acessosExternos.Atualizar(codAcessoExterno, "Impossível conectar-se ao servidor remoto", 404);
+                }
+                else if (ex.InnerException.ToString().Contains("Foi forçado o cancelamento de uma conexão existente pelo host remoto"))
+                {
+                    retorno.Erro = true;
+                    retorno.MensagemErro = "Erro consultando externo.";
+
+                    acessosExternos.Atualizar(codAcessoExterno, "Foi forçado o cancelamento de uma conexão existente pelo host remoto", 404);
+                }
+                else
+                {
+                    retorno.Erro = true;
+                    retorno.MensagemErro = "Erro consultando externo.";
+
+                    acessosExternos.Atualizar(codAcessoExterno, "Erro consultando externo", 404);
+                }
+
+                return retorno;
+            }
+
+            try
+            {
+                if (_resultBodyString)
+                    responseBody = response.Content.ReadAsStringAsync().Result;
+                else
+                    responseBodyArrayByte = response.Content.ReadAsByteArrayAsync().Result;
+            }
+            catch (Exception ex)
+            {
+                retorno.Erro = true;
+                retorno.MensagemErro = "Erro consultando externo.";
+
+                acessosExternos.Atualizar(codAcessoExterno, "Erro consultando externo", 404);
+                return retorno;
+            }
+
+            responseBody = responseBody.Replace("'", "");
+
+            retorno.Body = responseBody;
+            retorno.BodyArrayByte = responseBodyArrayByte;
+            retorno.HttpStatusCode = response.StatusCode;
+            retorno.Headers = new List<KeyValuePair<string, string>>();
+            foreach (var headerItem in response.Headers)
+            {
+                foreach (var valueItem in response.Headers.GetValues(headerItem.Key))
+                {
+                    retorno.Headers.Add(new KeyValuePair<string, string>(headerItem.Key, valueItem));
+                }
+            }
+
+            acessosExternos.Atualizar(codAcessoExterno, responseBody, (int)response.StatusCode);
+            return retorno;
+        }
+    
+        
         public void Dispose()
         {
             Dispose(true);

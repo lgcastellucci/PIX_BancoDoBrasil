@@ -61,20 +61,20 @@ namespace PIX_BancoDoBrasil
                 }
             };
 
-            var httpService = new HttpService(nomeFuncao);
+            var httpService = new HttpService("",nomeFuncao);
             httpService.HeaderAcceptAdd(new MediaTypeWithQualityHeaderValue("application/json"));
             httpService.AuthenticationSet(new AuthenticationHeaderValue("Bearer", accessToken));
             httpService.UrlSet("https://api.hm.bb.com.br/pix/v2/cob?gw-dev-app-key=" + ReadConf.developer_application_key());
             httpService.PayLoadSet(JsonConvert.SerializeObject(payLoad), Encoding.UTF8, "application/json");
             var retHttp = httpService.ExecutePost();
 
-            if (retHttp.httpStatusCode != HttpStatusCode.Created)
+            if (retHttp.HttpStatusCode != HttpStatusCode.Created)
                 return;
 
             JObject dataJson;
             try
             {
-                dataJson = JObject.Parse(retHttp.responseBody);
+                dataJson = JObject.Parse(retHttp.Body);
             }
             catch
             {
@@ -143,7 +143,7 @@ payloadlocation.write - Permissão para alteração de payloads
 payloadlocation.read - Permissão para consulta de payloads             
             */
 
-            var httpService = new HttpService(nomeFuncao);
+            var httpService = new HttpService("", nomeFuncao);
             httpService.HeaderAcceptAdd(new MediaTypeWithQualityHeaderValue("application/json"));
             httpService.AuthenticationSet(new AuthenticationHeaderValue("Basic", Convert.ToBase64String(Encoding.Default.GetBytes(ReadConf.clientId() + ":" + ReadConf.clientSecret()))));
             httpService.UrlSet("https://oauth.sandbox.bb.com.br/oauth/token");
@@ -151,13 +151,13 @@ payloadlocation.read - Permissão para consulta de payloads
             httpService.PayLoadSet(urlEncodedString, Encoding.UTF8, "application/x-www-form-urlencoded");
             var retHttp = httpService.ExecutePost();
 
-            if (retHttp.httpStatusCode != HttpStatusCode.Created)
+            if (retHttp.HttpStatusCode != HttpStatusCode.Created)
                 return "";
 
             JObject dataJson;
             try
             {
-                dataJson = JObject.Parse(retHttp.responseBody);
+                dataJson = JObject.Parse(retHttp.Body);
             }
             catch
             {
@@ -183,19 +183,19 @@ payloadlocation.read - Permissão para consulta de payloads
                 webhookUrl = "https://castellucci.net.br/PixBancoDoBrasil/webhook/BancodDoBrasil/pix"
             };
 
-            var httpService = new HttpService(nomeFuncao);
+            var httpService = new HttpService("", nomeFuncao);
             httpService.HeaderAcceptAdd(new MediaTypeWithQualityHeaderValue("application/json"));
             httpService.AuthenticationSet(new AuthenticationHeaderValue("Bearer", accessToken));
             httpService.UrlSet("https://api.hm.bb.com.br/pix/v2/webhook/" + ReadConf.chavePix() + "?gw-dev-app-key=" + ReadConf.developer_application_key());
             var retHttp = httpService.ExecuteGet();
 
-            if (retHttp.httpStatusCode != HttpStatusCode.OK)
+            if (retHttp.HttpStatusCode != HttpStatusCode.OK)
                 return false;
 
             JObject dataJson;
             try
             {
-                dataJson = JObject.Parse(retHttp.responseBody);
+                dataJson = JObject.Parse(retHttp.Body);
             }
             catch
             {
@@ -227,14 +227,14 @@ payloadlocation.read - Permissão para consulta de payloads
                 webhookUrl = "https://castellucci.net.br/PixBancoDoBrasil/webhook/BancodDoBrasil/pix"
             };
 
-            var httpService = new HttpService(nomeFuncao);
+            var httpService = new HttpService("", nomeFuncao);
             httpService.HeaderAcceptAdd(new MediaTypeWithQualityHeaderValue("application/json"));
             httpService.AuthenticationSet(new AuthenticationHeaderValue("Bearer", accessToken));
             httpService.UrlSet("https://api.hm.bb.com.br/pix/v2/webhook/" + ReadConf.chavePix() + "?gw-dev-app-key=" + ReadConf.developer_application_key());
             httpService.PayLoadSet(JsonConvert.SerializeObject(payLoad), Encoding.UTF8, "application/json");
             var retHttp = httpService.ExecutePut();
 
-            if (retHttp.httpStatusCode != HttpStatusCode.OK)
+            if (retHttp.HttpStatusCode != HttpStatusCode.OK)
                 return false;
 
             return true;
