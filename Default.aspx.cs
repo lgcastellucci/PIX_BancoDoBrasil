@@ -35,13 +35,16 @@ namespace PIX_BancoDoBrasil
 
             string accessToken = GetToken();
 
+            var respValidaWebhook = ValidaWebhook(accessToken);
+
+
             int expiracaoSegundos = 3600;
             string devedorCPF = "11122233396";
-            //string devedorNome = "Jose da Silva";
+            string devedorNome = "Jose da Silva";
             double valor = 10.00;
 
             if (!string.IsNullOrWhiteSpace(txtCPF.Text))
-                devedorCPF = txtCPF.Text.Replace(".","").Replace("-","");
+                devedorCPF = txtCPF.Text.Replace(".", "").Replace("-", "");
             if (!string.IsNullOrWhiteSpace(txtValor.Text))
                 valor = Convert.ToDouble(txtValor.Text);
 
@@ -51,8 +54,7 @@ namespace PIX_BancoDoBrasil
             {
                 chave = ReadConf.chavePix(),
                 calendario = new { expiracao = expiracaoSegundos.ToString() }, //
-                //devedor = new { cpf = devedorCPF, nome = devedorNome },
-                devedor = new { cpf = devedorCPF },
+                devedor = new { cpf = devedorCPF, nome = devedorNome },
                 valor = new { original = valor.ToString("N2").Replace(".", "").Replace(",", ".") },
                 infoAdicionais = new[] {
                     new { nome = "MinhaIdentificacao", valor = minhaIdentificacao }
@@ -123,8 +125,23 @@ namespace PIX_BancoDoBrasil
 
             var keyValues = new List<KeyValuePair<string, string>>();
             keyValues.Add(new KeyValuePair<string, string>("grant_type", "client_credentials"));
-            keyValues.Add(new KeyValuePair<string, string>("scope", "cob.read cob.write"));
+            keyValues.Add(new KeyValuePair<string, string>("scope", "cob.read cob.write pix.read pix.write webhook.read webhook.write"));
             string urlEncodedString = new FormUrlEncodedContent(keyValues).ReadAsStringAsync().Result;
+
+            /*
+cob.write Permissão para alteração de cobranças imediatas
+cob.read Permissão para consulta de cobranças imediatas
+cobv.write - Permissão para alteração de cobranças com vencimento
+cobv.read - Permissão para consulta de cobranças com vencimento
+lotecobv.write - Permissão para alteração de lotes de cobranças com vencimento
+lotecobv.read - Permissão para consulta de lotes de cobranças com vencimento
+pix.write - Permissão para alteração de Pix
+pix.read - Permissão para consulta de Pix
+webhook.read - Permissão para consulta do webhook
+webhook.write - Permissão para alteração do webhook
+payloadlocation.write - Permissão para alteração de payloads
+payloadlocation.read - Permissão para consulta de payloads             
+            */
 
             var httpService = new HttpService(nomeFuncao);
             httpService.HeaderAcceptAdd(new MediaTypeWithQualityHeaderValue("application/json"));
@@ -154,6 +171,73 @@ namespace PIX_BancoDoBrasil
                 return "";
 
             return dataJson.SelectToken("access_token").ToString();
+
+        }
+
+        private bool ValidaWebhook(string accessToken)
+        {
+            string nomeFuncao = "ValidaWebhook";
+
+            var payLoad = new
+            {
+                webhookUrl = "https://castellucci.net.br/PixBancoDoBrasil/webhook/BancodDoBrasil/pix"
+            };
+
+            var httpService = new HttpService(nomeFuncao);
+            httpService.HeaderAcceptAdd(new MediaTypeWithQualityHeaderValue("application/json"));
+            httpService.AuthenticationSet(new AuthenticationHeaderValue("Bearer", accessToken));
+            httpService.UrlSet("https://api.hm.bb.com.br/pix/v2/webhook/" + ReadConf.chavePix() + "?gw-dev-app-key=" + ReadConf.developer_application_key());
+            var retHttp = httpService.ExecuteGet();
+
+            if (retHttp.httpStatusCode != HttpStatusCode.OK)
+                return false;
+
+            JObject dataJson;
+            try
+            {
+                dataJson = JObject.Parse(retHttp.responseBody);
+            }
+            catch
+            {
+                return false;
+            }
+
+            if (dataJson.SelectToken("webhookUrl") == null)
+                return false;
+
+            if (dataJson.SelectToken("webhookUrl").ToString() != payLoad.webhookUrl)
+            {
+                var retCadastraWebhook = CadastraWebhook(accessToken);
+                return retCadastraWebhook;
+            }
+
+            return true;
+
+            //httpService.PayLoadSet(JsonConvert.SerializeObject(payLoad), Encoding.UTF8, "application/json");
+
+
+        }
+
+        private bool CadastraWebhook(string accessToken)
+        {
+            string nomeFuncao = "CadastraWebhook";
+
+            var payLoad = new
+            {
+                webhookUrl = "https://castellucci.net.br/PixBancoDoBrasil/webhook/BancodDoBrasil/pix"
+            };
+
+            var httpService = new HttpService(nomeFuncao);
+            httpService.HeaderAcceptAdd(new MediaTypeWithQualityHeaderValue("application/json"));
+            httpService.AuthenticationSet(new AuthenticationHeaderValue("Bearer", accessToken));
+            httpService.UrlSet("https://api.hm.bb.com.br/pix/v2/webhook/" + ReadConf.chavePix() + "?gw-dev-app-key=" + ReadConf.developer_application_key());
+            httpService.PayLoadSet(JsonConvert.SerializeObject(payLoad), Encoding.UTF8, "application/json");
+            var retHttp = httpService.ExecutePut();
+
+            if (retHttp.httpStatusCode != HttpStatusCode.OK)
+                return false;
+
+            return true;
 
         }
     }

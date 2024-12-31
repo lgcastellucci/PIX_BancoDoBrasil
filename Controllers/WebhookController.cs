@@ -21,9 +21,6 @@ namespace PIX_BancoDoBrasil.Controllers
             Acessos acessos = new Acessos();
             string codAcesso = acessos.Inserir("POST", httpRequest.Url.ToString(), JsonConvert.SerializeObject(value), null, httpRequest.UserHostAddress);
 
-
-
-
             var retHttp = new HttpResponseMessage();
 
             /*
