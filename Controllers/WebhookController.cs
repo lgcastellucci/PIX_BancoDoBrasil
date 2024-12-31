@@ -1,9 +1,10 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using PIX_BancoDoBrasil.Models;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Reflection;
+using System.Web;
 using System.Web.Http;
 
 namespace PIX_BancoDoBrasil.Controllers
@@ -14,6 +15,15 @@ namespace PIX_BancoDoBrasil.Controllers
         [Route("webhook/BancodDoBrasil/pix")]
         public HttpResponseMessage ProcessaPixItau(JObject value)
         {
+
+            HttpRequest httpRequest = HttpContext.Current.Request;
+
+            Acessos acessos = new Acessos();
+            string codAcesso = acessos.Inserir("POST", httpRequest.Url.ToString(), JsonConvert.SerializeObject(value), null, httpRequest.UserHostAddress);
+
+
+
+
             var retHttp = new HttpResponseMessage();
 
             /*
@@ -35,10 +45,5 @@ namespace PIX_BancoDoBrasil.Controllers
             return retHttp;
         }
 
-
-        public HttpResponseMessage Execute(string CodClienteParceleDebitos, string url, JObject valueRequest)
-        {
-            string nomeFuncao = GetType().Name + "-" + MethodBase.GetCurrentMethod().Name;
-        }
-        }
+    }
 }
