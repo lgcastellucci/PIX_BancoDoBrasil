@@ -11,7 +11,7 @@ namespace PIX_BancoDoBrasil.Models
         {
             string codAcessoExterno = "";
 
-            StringBuilder sbInstrucao = new StringBuilder();
+            var sbInstrucao = new StringBuilder();
             sbInstrucao.Append(" INSERT INTO ACESSOS_EXTERNOS ");
             sbInstrucao.Append("  ( DATA, COD_ACESSO, URL, REQUISICAO ) ");
             sbInstrucao.Append(" VALUES ");
@@ -21,20 +21,20 @@ namespace PIX_BancoDoBrasil.Models
             sbInstrucao.Append(string.IsNullOrEmpty(url) ? " NULL, " : " '" + url + "', ");
             sbInstrucao.Append(string.IsNullOrEmpty(requicao) ? " NULL " : " '" + requicao + "' ");
             sbInstrucao.Append(" ) ");
-            using (SqlConnection sqlConnection = new SqlConnection(connectionString))
+            using (var sqlConnection = new SqlConnection(connectionString))
             {
                 sqlConnection.Open();
 
-                using (SqlCommand command = new SqlCommand(sbInstrucao.ToString(), sqlConnection))
+                using (var command = new SqlCommand(sbInstrucao.ToString(), sqlConnection))
                 {
                     command.ExecuteNonQuery();
                 }
 
                 sbInstrucao.Remove(0, sbInstrucao.Length);
                 sbInstrucao.Append("SELECT @@IDENTITY COD_ACESSO_EXTERNO ");
-                using (SqlCommand cmd = new SqlCommand(sbInstrucao.ToString(), sqlConnection))
+                using (var cmd = new SqlCommand(sbInstrucao.ToString(), sqlConnection))
                 {
-                    SqlDataReader dataReader = cmd.ExecuteReader();
+                    var dataReader = cmd.ExecuteReader();
                     if (dataReader.HasRows)
                     {
                         while (dataReader.Read())
@@ -53,7 +53,7 @@ namespace PIX_BancoDoBrasil.Models
             if (string.IsNullOrEmpty(codAcessoExterno))
                 return;
 
-            StringBuilder sbInstrucao = new StringBuilder();
+            var sbInstrucao = new StringBuilder();
             sbInstrucao.Append(" UPDATE ACESSOS_EXTERNOS ");
             sbInstrucao.Append(" SET ");
             sbInstrucao.Append("   RESPOSTA = '" + resposta + "', ");
@@ -61,11 +61,11 @@ namespace PIX_BancoDoBrasil.Models
             sbInstrucao.Append("   HTTP_STATUS_CODE = " + respostaStatusCode.ToString() + " ");
             sbInstrucao.Append(" WHERE COD_ACESSO_EXTERNO = '" + codAcessoExterno + "' ");
 
-            using (SqlConnection sqlConnection = new SqlConnection(connectionString))
+            using (var sqlConnection = new SqlConnection(connectionString))
             {
                 sqlConnection.Open();
 
-                using (SqlCommand command = new SqlCommand(sbInstrucao.ToString(), sqlConnection))
+                using (var command = new SqlCommand(sbInstrucao.ToString(), sqlConnection))
                 {
                     command.ExecuteNonQuery();
                 }

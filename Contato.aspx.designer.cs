@@ -11,7 +11,7 @@ namespace PIX_BancoDoBrasil
 {
 
 
-    public partial class About
+    public partial class Contato
     {
     }
 }

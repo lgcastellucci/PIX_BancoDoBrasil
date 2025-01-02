@@ -1,9 +1,9 @@
-﻿<%@ Page Title="About" Language="C#" MasterPageFile="~/Site.Master" AutoEventWireup="true" CodeBehind="About.aspx.cs" Inherits="PIX_BancoDoBrasil.About" %>
+﻿<%@ Page Title="Sobre" Language="C#" MasterPageFile="~/Site.Master" AutoEventWireup="true" CodeBehind="About.aspx.cs" Inherits="PIX_BancoDoBrasil.About" %>
 
 <asp:Content ID="BodyContent" ContentPlaceHolderID="MainContent" runat="server">
     <main aria-labelledby="title">
         <h2 id="title"><%: Title %>.</h2>
-        <h3>Your application description page.</h3>
-        <p>Use this area to provide additional information.</p>
+        <h3>Geração de um PIX no Banco do Brasil.</h3>
+        <p></p>
     </main>
 </asp:Content>

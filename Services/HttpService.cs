@@ -12,10 +12,11 @@ namespace PIX_BancoDoBrasil.Services
     /// <summary>
     /// HttpService
     /// </summary>
-    public class HttpService 
+    public class HttpService
     {
         private string _url;
         private string _codAcesso;
+        private string _nomeFuncao;
 
         private AuthenticationHeaderValue _authenticationHeader;
         private HttpClientHandler _httpClientHandler;
@@ -24,6 +25,7 @@ namespace PIX_BancoDoBrasil.Services
         private string _content;
         private StringContent _stringContent;
         private int _timeout;
+        private bool _ignoreCertificateValidation;
         public bool _resultBodyString;
 
 
@@ -84,9 +86,34 @@ namespace PIX_BancoDoBrasil.Services
             _content = content;
             _stringContent = new StringContent(content, encoding, mediaType);
         }
+        /// <summary>Configura o timeout</summary>
+        /// <remarks>
+        /// Usado para alterar o valor padrão de 3 minutos para o timeout da requisição
+        /// </remarks>
+        /// <param name="timeout">Numero inteiro em minutos</param>
         public void TimeoutSet(int timeout)
         {
+            _timeout = timeout * 60; //Parametro em minutos sendo transformado em segundos
+        }
+
+        /// <summary>Configura o timeout</summary>
+        /// <remarks>
+        /// Usado para alterar o valor padrão de 3 minutos para o timeout da requisição
+        /// </remarks>
+        /// <param name="timeout">Numero inteiro em segundos</param>
+        public void TimeoutSet_EmSegundos(int timeout)
+        {
             _timeout = timeout;
+        }
+
+
+        /// <summary>Configura validação do certificado</summary>
+        /// <remarks>
+        /// Usado para ignorar a validação do certificado SSL
+        /// </remarks>
+        public void IgnoreCertificateValidationSet()
+        {
+            _ignoreCertificateValidation = true;
         }
 
         public void ResultByteSet()
@@ -101,8 +128,10 @@ namespace PIX_BancoDoBrasil.Services
         public HttpService(string codAcesso, string nomeFuncao)
         {
             _codAcesso = codAcesso;
+            _nomeFuncao = nomeFuncao;
             _timeout = 15;
             _resultBodyString = true;
+            _ignoreCertificateValidation = false;
         }
 
         public Retorno ExecuteGet()
@@ -112,9 +141,13 @@ namespace PIX_BancoDoBrasil.Services
         }
         private async Task<Retorno> ExecuteGetAsync()
         {
-            Retorno retorno = new Retorno();
-            AcessosExternos acessosExternos = new AcessosExternos();
-            string codAcessoExterno = acessosExternos.Inserir(_codAcesso, _url, _content);
+            var retorno = new Retorno();
+            var dataInicio = DateTime.Now;
+            var acessosExternos = new AcessosExternos();
+            var codAcessoExterno = acessosExternos.Inserir(_codAcesso, _url, _content);
+
+            if (_ignoreCertificateValidation)
+                ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
 
             HttpClient httpClient = null;
             if (_httpClientHandler != null)
@@ -129,9 +162,9 @@ namespace PIX_BancoDoBrasil.Services
             catch (Exception ex)
             {
                 retorno.Erro = true;
-                retorno.MensagemErro = "Erro consultando externo.";
+                retorno.MensagemErro = "Set BaseAddress";
 
-                acessosExternos.Atualizar(codAcessoExterno, "Set BaseAddress", 404);
+                acessosExternos.Atualizar(codAcessoExterno, retorno.MensagemErro, 404);
                 return retorno;
             }
 
@@ -173,37 +206,37 @@ namespace PIX_BancoDoBrasil.Services
                 if (ex.InnerException.ToString().Contains("TaskCanceledException"))
                 {
                     retorno.Erro = true;
-                    retorno.MensagemErro = "Erro consultando externo.";
+                    retorno.MensagemErro = "TaskCanceledException";
 
-                    acessosExternos.Atualizar(codAcessoExterno, "TaskCanceledException", 404);
+                    acessosExternos.Atualizar(codAcessoExterno, retorno.MensagemErro, 404);
                 }
                 else if (ex.InnerException.ToString().Contains("O nome remoto não pôde ser resolvido"))
                 {
                     retorno.Erro = true;
-                    retorno.MensagemErro = "Erro consultando externo.";
+                    retorno.MensagemErro = "O nome remoto não pôde ser resolvido";
 
-                    acessosExternos.Atualizar(codAcessoExterno, "O nome remoto não pôde ser resolvido", 404);
+                    acessosExternos.Atualizar(codAcessoExterno, retorno.MensagemErro, 404);
                 }
                 else if (ex.InnerException.ToString().Contains("Impossível conectar-se ao servidor remoto"))
                 {
                     retorno.Erro = true;
-                    retorno.MensagemErro = "Erro consultando externo.";
+                    retorno.MensagemErro = "Impossível conectar-se ao servidor remoto";
 
-                    acessosExternos.Atualizar(codAcessoExterno, "Impossível conectar-se ao servidor remoto", 404);
+                    acessosExternos.Atualizar(codAcessoExterno, retorno.MensagemErro, 404);
                 }
                 else if (ex.InnerException.ToString().Contains("Foi forçado o cancelamento de uma conexão existente pelo host remoto"))
                 {
                     retorno.Erro = true;
-                    retorno.MensagemErro = "Erro consultando externo.";
+                    retorno.MensagemErro = "Foi forçado o cancelamento de uma conexão existente pelo host remoto";
 
-                    acessosExternos.Atualizar(codAcessoExterno, "Foi forçado o cancelamento de uma conexão existente pelo host remoto", 404);
+                    acessosExternos.Atualizar(codAcessoExterno, retorno.MensagemErro, 404);
                 }
                 else
                 {
                     retorno.Erro = true;
-                    retorno.MensagemErro = "Erro consultando externo.";
+                    retorno.MensagemErro = ex.InnerException.ToString();
 
-                    acessosExternos.Atualizar(codAcessoExterno, "Erro consultando externo", 404);
+                    acessosExternos.Atualizar(codAcessoExterno, retorno.MensagemErro, 404);
                 }
 
                 return retorno;
@@ -220,9 +253,9 @@ namespace PIX_BancoDoBrasil.Services
             catch (Exception ex)
             {
                 retorno.Erro = true;
-                retorno.MensagemErro = "Erro consultando externo.";
+                retorno.MensagemErro = ex.InnerException.ToString();
 
-                acessosExternos.Atualizar(codAcessoExterno, "Erro consultando externo", 404);
+                acessosExternos.Atualizar(codAcessoExterno, retorno.MensagemErro, 404);
                 return retorno;
             }
 
@@ -252,13 +285,15 @@ namespace PIX_BancoDoBrasil.Services
         }
         private async Task<Retorno> ExecutePostAsync()
         {
-            Retorno retorno = new Retorno();
-            DateTime dataInicio = DateTime.Now;
-            AcessosExternos acessosExternos = new AcessosExternos();
-            string codAcessoExterno = acessosExternos.Inserir(_codAcesso, _url, _content);
+            var retorno = new Retorno();
+            var dataInicio = DateTime.Now;
+            var acessosExternos = new AcessosExternos();
+            var codAcessoExterno = acessosExternos.Inserir(_codAcesso, _url, _content);
 
-            //HttpClient httpClient = new HttpClient();
-            HttpClient httpClient = new HttpClient(new HttpClientHandler { UseCookies = false });
+            if (_ignoreCertificateValidation)
+                ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
+
+            var httpClient = new HttpClient(new HttpClientHandler { UseCookies = false });
 
             try
             {
@@ -267,9 +302,9 @@ namespace PIX_BancoDoBrasil.Services
             catch (Exception ex)
             {
                 retorno.Erro = true;
-                retorno.MensagemErro = "Erro consultando externo.";
+                retorno.MensagemErro = "Set BaseAddress";
 
-                acessosExternos.Atualizar(codAcessoExterno, "Set BaseAddress", 404);
+                acessosExternos.Atualizar(codAcessoExterno, retorno.MensagemErro, 404);
                 return retorno;
             }
 
@@ -311,37 +346,37 @@ namespace PIX_BancoDoBrasil.Services
                 if (ex.InnerException.ToString().Contains("TaskCanceledException"))
                 {
                     retorno.Erro = true;
-                    retorno.MensagemErro = "Erro consultando externo.";
+                    retorno.MensagemErro = "TaskCanceledException";
 
-                    acessosExternos.Atualizar(codAcessoExterno, "TaskCanceledException", 404);
+                    acessosExternos.Atualizar(codAcessoExterno, retorno.MensagemErro, 404);
                 }
                 else if (ex.InnerException.ToString().Contains("O nome remoto não pôde ser resolvido"))
                 {
                     retorno.Erro = true;
-                    retorno.MensagemErro = "Erro consultando externo.";
+                    retorno.MensagemErro = "O nome remoto não pôde ser resolvido";
 
-                    acessosExternos.Atualizar(codAcessoExterno, "O nome remoto não pôde ser resolvido", 404);
+                    acessosExternos.Atualizar(codAcessoExterno, retorno.MensagemErro, 404);
                 }
                 else if (ex.InnerException.ToString().Contains("Impossível conectar-se ao servidor remoto"))
                 {
                     retorno.Erro = true;
-                    retorno.MensagemErro = "Erro consultando externo.";
+                    retorno.MensagemErro = "Impossível conectar-se ao servidor remoto";
 
-                    acessosExternos.Atualizar(codAcessoExterno, "Impossível conectar-se ao servidor remoto", 404);
+                    acessosExternos.Atualizar(codAcessoExterno, retorno.MensagemErro, 404);
                 }
                 else if (ex.InnerException.ToString().Contains("Foi forçado o cancelamento de uma conexão existente pelo host remoto"))
                 {
                     retorno.Erro = true;
-                    retorno.MensagemErro = "Erro consultando externo.";
+                    retorno.MensagemErro = "Foi forçado o cancelamento de uma conexão existente pelo host remoto";
 
-                    acessosExternos.Atualizar(codAcessoExterno, "Foi forçado o cancelamento de uma conexão existente pelo host remoto", 404);
+                    acessosExternos.Atualizar(codAcessoExterno, retorno.MensagemErro, 404);
                 }
                 else
                 {
                     retorno.Erro = true;
-                    retorno.MensagemErro = "Erro consultando externo.";
+                    retorno.MensagemErro = ex.InnerException.ToString();
 
-                    acessosExternos.Atualizar(codAcessoExterno, "Erro consultando externo", 404);
+                    acessosExternos.Atualizar(codAcessoExterno, retorno.MensagemErro, 404);
                 }
 
                 return retorno;
@@ -357,9 +392,9 @@ namespace PIX_BancoDoBrasil.Services
             catch (Exception ex)
             {
                 retorno.Erro = true;
-                retorno.MensagemErro = "Erro consultando externo.";
+                retorno.MensagemErro = ex.InnerException.ToString();
 
-                acessosExternos.Atualizar(codAcessoExterno, "Erro consultando externo", 404);
+                acessosExternos.Atualizar(codAcessoExterno, retorno.MensagemErro, 404);
                 return retorno;
             }
 
@@ -389,12 +424,14 @@ namespace PIX_BancoDoBrasil.Services
         }
         private async Task<Retorno> ExecutePutAsync()
         {
-            Retorno retorno = new Retorno();
-            DateTime dataInicio = DateTime.Now;
-            AcessosExternos acessosExternos = new AcessosExternos();
-            string codAcessoExterno = acessosExternos.Inserir(_codAcesso, _url, _content);
+            var retorno = new Retorno();
+            var dataInicio = DateTime.Now;
+            var acessosExternos = new AcessosExternos();
+            var codAcessoExterno = acessosExternos.Inserir(_codAcesso, _url, _content);
 
-            //HttpClient httpClient = new HttpClient();
+            if (_ignoreCertificateValidation)
+                ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
+
             HttpClient httpClient = new HttpClient(new HttpClientHandler { UseCookies = false });
 
             try
@@ -404,9 +441,9 @@ namespace PIX_BancoDoBrasil.Services
             catch (Exception ex)
             {
                 retorno.Erro = true;
-                retorno.MensagemErro = "Erro consultando externo.";
+                retorno.MensagemErro = "Set BaseAddress";
 
-                acessosExternos.Atualizar(codAcessoExterno, "Set BaseAddress", 404);
+                acessosExternos.Atualizar(codAcessoExterno, retorno.MensagemErro, 404);
                 return retorno;
             }
 
@@ -448,37 +485,37 @@ namespace PIX_BancoDoBrasil.Services
                 if (ex.InnerException.ToString().Contains("TaskCanceledException"))
                 {
                     retorno.Erro = true;
-                    retorno.MensagemErro = "Erro consultando externo.";
+                    retorno.MensagemErro = "TaskCanceledException";
 
-                    acessosExternos.Atualizar(codAcessoExterno, "TaskCanceledException", 404);
+                    acessosExternos.Atualizar(codAcessoExterno, retorno.MensagemErro, 404);
                 }
                 else if (ex.InnerException.ToString().Contains("O nome remoto não pôde ser resolvido"))
                 {
                     retorno.Erro = true;
-                    retorno.MensagemErro = "Erro consultando externo.";
+                    retorno.MensagemErro = "O nome remoto não pôde ser resolvido";
 
-                    acessosExternos.Atualizar(codAcessoExterno, "O nome remoto não pôde ser resolvido", 404);
+                    acessosExternos.Atualizar(codAcessoExterno, retorno.MensagemErro, 404);
                 }
                 else if (ex.InnerException.ToString().Contains("Impossível conectar-se ao servidor remoto"))
                 {
                     retorno.Erro = true;
-                    retorno.MensagemErro = "Erro consultando externo.";
+                    retorno.MensagemErro = "Impossível conectar-se ao servidor remoto";
 
-                    acessosExternos.Atualizar(codAcessoExterno, "Impossível conectar-se ao servidor remoto", 404);
+                    acessosExternos.Atualizar(codAcessoExterno, retorno.MensagemErro, 404);
                 }
                 else if (ex.InnerException.ToString().Contains("Foi forçado o cancelamento de uma conexão existente pelo host remoto"))
                 {
                     retorno.Erro = true;
-                    retorno.MensagemErro = "Erro consultando externo.";
+                    retorno.MensagemErro = "Foi forçado o cancelamento de uma conexão existente pelo host remoto";
 
-                    acessosExternos.Atualizar(codAcessoExterno, "Foi forçado o cancelamento de uma conexão existente pelo host remoto", 404);
+                    acessosExternos.Atualizar(codAcessoExterno, retorno.MensagemErro, 404);
                 }
                 else
                 {
                     retorno.Erro = true;
-                    retorno.MensagemErro = "Erro consultando externo.";
+                    retorno.MensagemErro = ex.InnerException.ToString();
 
-                    acessosExternos.Atualizar(codAcessoExterno, "Erro consultando externo", 404);
+                    acessosExternos.Atualizar(codAcessoExterno, retorno.MensagemErro, 404);
                 }
 
                 return retorno;
@@ -494,9 +531,9 @@ namespace PIX_BancoDoBrasil.Services
             catch (Exception ex)
             {
                 retorno.Erro = true;
-                retorno.MensagemErro = "Erro consultando externo.";
+                retorno.MensagemErro = ex.InnerException.ToString();
 
-                acessosExternos.Atualizar(codAcessoExterno, "Erro consultando externo", 404);
+                acessosExternos.Atualizar(codAcessoExterno, retorno.MensagemErro, 404);
                 return retorno;
             }
 
@@ -517,8 +554,8 @@ namespace PIX_BancoDoBrasil.Services
             acessosExternos.Atualizar(codAcessoExterno, responseBody, (int)response.StatusCode);
             return retorno;
         }
-    
-        
+
+
         public void Dispose()
         {
             Dispose(true);

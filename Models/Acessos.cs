@@ -1,51 +1,27 @@
-﻿using System.Configuration;
+﻿using System;
+using System.Configuration;
 using System.Data.SqlClient;
 using System.Text;
 
 namespace PIX_BancoDoBrasil.Models
 {
-    public class Acessos 
+    public class Acessos
     {
         readonly string connectionString = ConfigurationManager.ConnectionStrings["dbConnection"].ConnectionString;
-        public string Inserir(string tipoAcesso = null, string url = null, string requicao = null, string resposta = null, string ip = null)
+        public string Inserir(string tipoAcesso, string url, string requicao, string ip)
         {
             string codAcesso = "";
 
             StringBuilder sbInstrucao = new StringBuilder();
             sbInstrucao.Append(" INSERT INTO ACESSOS ");
-            sbInstrucao.Append("  ( DATA, TIPO_ACESSO, URL, REQUISICAO, RESPOSTA, COD_RETORNO_INTERNO, OCORRENCIA, IP ) ");
+            sbInstrucao.Append("  ( DATA, TIPO_ACESSO, URL, REQUISICAO, IP ) ");
             sbInstrucao.Append(" VALUES ");
             sbInstrucao.Append(" ( ");
             sbInstrucao.Append("   GETDATE(), ");
-
-            if (string.IsNullOrEmpty(tipoAcesso))
-                sbInstrucao.Append("  null, ");
-            else
-                sbInstrucao.Append("   '" + tipoAcesso + "', ");
-
-            if (string.IsNullOrEmpty(url))
-                sbInstrucao.Append("  null, ");
-            else
-                sbInstrucao.Append("   '" + url + "', ");
-
-            if (string.IsNullOrEmpty(requicao))
-                sbInstrucao.Append("  null, ");
-            else
-                sbInstrucao.Append("   '" + requicao + "', ");
-
-            if (string.IsNullOrEmpty(resposta))
-                sbInstrucao.Append("  null, ");
-            else
-                sbInstrucao.Append("   '" + resposta + "', ");
-
-            sbInstrucao.Append("  null, ");
-            sbInstrucao.Append("  null, ");
-
-            if (string.IsNullOrEmpty(ip))
-                sbInstrucao.Append("  null, ");
-            else
-                sbInstrucao.Append("   '" + ip + "' ");
-
+            sbInstrucao.Append(string.IsNullOrWhiteSpace(tipoAcesso) ? " NULL, " : " '" + tipoAcesso + "', ");
+            sbInstrucao.Append(string.IsNullOrWhiteSpace(url) ? " NULL, " : " '" + url + "', ");
+            sbInstrucao.Append(string.IsNullOrWhiteSpace(requicao) ? " NULL, " : " '" + requicao + "', ");
+            sbInstrucao.Append(string.IsNullOrWhiteSpace(ip) ? " NULL " : " '" + ip + "' ");
             sbInstrucao.Append(" ) ");
 
             using (SqlConnection sqlConnection = new SqlConnection(connectionString))
@@ -76,11 +52,13 @@ namespace PIX_BancoDoBrasil.Models
             }
             return codAcesso;
         }
-        public void Atualizar(string codAcesso, string resposta)
+        public void Atualizar(string codAcesso, string resposta, string codRetornoInterno, string Ocorrencia)
         {
             StringBuilder sbInstrucao = new StringBuilder();
             sbInstrucao.Append(" UPDATE ACESSOS ");
-            sbInstrucao.Append(" SET RESPOSTA = '" + resposta + "'");
+            sbInstrucao.Append(" SET RESPOSTA = ").Append(string.IsNullOrWhiteSpace(resposta) ? " NULL, " : " '" + resposta + "', ");
+            sbInstrucao.Append("     COD_RETORNO_INTERNO = ").Append(string.IsNullOrWhiteSpace(codRetornoInterno) ? " NULL, " : " '" + codRetornoInterno + "', ");
+            sbInstrucao.Append("     OCORRENCIA = ").Append(string.IsNullOrWhiteSpace(Ocorrencia) ? " NULL, " : " '" + Ocorrencia + "' ");
             sbInstrucao.Append(" WHERE COD_ACESSO = " + codAcesso);
 
             using (SqlConnection sqlConnection = new SqlConnection(connectionString))
