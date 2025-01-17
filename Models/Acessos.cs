@@ -14,7 +14,7 @@ namespace PIX_BancoDoBrasil.Models
 
             StringBuilder sbInstrucao = new StringBuilder();
             sbInstrucao.Append(" INSERT INTO ACESSOS ");
-            sbInstrucao.Append("  ( DATA, TIPO_ACESSO, URL, REQUISICAO, IP ) ");
+            sbInstrucao.Append("  ( DATA, TIPO_ACESSO, SERVIDOR, REQUISICAO, IP ) ");
             sbInstrucao.Append(" VALUES ");
             sbInstrucao.Append(" ( ");
             sbInstrucao.Append("   GETDATE(), ");
@@ -57,6 +57,7 @@ namespace PIX_BancoDoBrasil.Models
             StringBuilder sbInstrucao = new StringBuilder();
             sbInstrucao.Append(" UPDATE ACESSOS ");
             sbInstrucao.Append(" SET RESPOSTA = ").Append(string.IsNullOrWhiteSpace(resposta) ? " NULL, " : " '" + resposta + "', ");
+            sbInstrucao.Append("     RESPOSTA_DATA = ").Append(string.IsNullOrWhiteSpace(resposta) ? " NULL, " : " GETDATE(), ");
             sbInstrucao.Append("     COD_RETORNO_INTERNO = ").Append(string.IsNullOrWhiteSpace(codRetornoInterno) ? " NULL, " : " '" + codRetornoInterno + "', ");
             sbInstrucao.Append("     OCORRENCIA = ").Append(string.IsNullOrWhiteSpace(Ocorrencia) ? " NULL, " : " '" + Ocorrencia + "' ");
             sbInstrucao.Append(" WHERE COD_ACESSO = " + codAcesso);

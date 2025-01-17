@@ -121,11 +121,6 @@ namespace PIX_BancoDoBrasil.Services
             string nomeFuncao = "ValidarWebhook";
             var resposta = new Resposta();
 
-            var payLoad = new
-            {
-                webhookUrl = "https://castellucci.net.br/PixBancoDoBrasil/webhook/BancodDoBrasil/pix"
-            };
-
             var httpService = new HttpService(codAcesso, nomeFuncao);
             httpService.HeaderAcceptAdd(new MediaTypeWithQualityHeaderValue("application/json"));
             httpService.AuthenticationSet(new AuthenticationHeaderValue("Bearer", accessToken));
@@ -152,12 +147,14 @@ namespace PIX_BancoDoBrasil.Services
 
             if (dataJson.SelectToken("webhookUrl") == null)
             {
-                resposta.mensagem = "webhookUrl: " + retHttp.Body;
-                return resposta;
+                var retCadastraWebhook = CadastrarWebhook(codAcesso, accessToken);
+                return retCadastraWebhook;
             }
 
-            if (dataJson.SelectToken("webhookUrl").ToString() != payLoad.webhookUrl)
+            if (dataJson.SelectToken("webhookUrl").ToString() != ReadConf.webhookUrl())
             {
+                var retDeletarWebhook = DeletarWebhook(codAcesso, accessToken);
+
                 var retCadastraWebhook = CadastrarWebhook(codAcesso, accessToken);
                 return retCadastraWebhook;
             }
@@ -173,7 +170,7 @@ namespace PIX_BancoDoBrasil.Services
 
             var payLoad = new
             {
-                webhookUrl = "https://castellucci.net.br/PixBancoDoBrasil/webhook/BancodDoBrasil/pix"
+                webhookUrl = ReadConf.webhookUrl()
             };
 
             var httpService = new HttpService(codAcesso, nomeFuncao);
@@ -183,6 +180,28 @@ namespace PIX_BancoDoBrasil.Services
             httpService.PayLoadSet(JsonConvert.SerializeObject(payLoad), Encoding.UTF8, "application/json");
             httpService.IgnoreCertificateValidationSet();
             var retHttp = httpService.ExecutePut();
+
+            if (retHttp.HttpStatusCode != HttpStatusCode.OK)
+            {
+                resposta.mensagem = "HttpStatusCode: " + retHttp.HttpStatusCode;
+                return resposta;
+            };
+
+            resposta.sucesso = true;
+            return resposta;
+        }
+
+        public Resposta DeletarWebhook(string codAcesso, string accessToken)
+        {
+            string nomeFuncao = "DeletarWebhook";
+            var resposta = new Resposta();
+
+            var httpService = new HttpService(codAcesso, nomeFuncao);
+            httpService.HeaderAcceptAdd(new MediaTypeWithQualityHeaderValue("application/json"));
+            httpService.AuthenticationSet(new AuthenticationHeaderValue("Bearer", accessToken));
+            httpService.UrlSet("https://api.hm.bb.com.br/pix/v2/webhook/" + ReadConf.chavePix() + "?gw-dev-app-key=" + ReadConf.developer_application_key());
+            httpService.IgnoreCertificateValidationSet();
+            var retHttp = httpService.ExecuteDelete();
 
             if (retHttp.HttpStatusCode != HttpStatusCode.OK)
             {

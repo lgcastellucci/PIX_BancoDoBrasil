@@ -562,6 +562,149 @@ namespace PIX_BancoDoBrasil.Services
             GC.SuppressFinalize(this);
         }
 
+        public Retorno ExecuteDelete()
+        {
+            Retorno retorno = ExecuteDeleteAsync().Result;
+            return retorno;
+        }
+        private async Task<Retorno> ExecuteDeleteAsync()
+        {
+            var retorno = new Retorno();
+            var dataInicio = DateTime.Now;
+            var acessosExternos = new AcessosExternos();
+            var codAcessoExterno = acessosExternos.Inserir(_codAcesso, _url, _content);
+
+            if (_ignoreCertificateValidation)
+                ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
+
+            HttpClient httpClient = null;
+            if (_httpClientHandler != null)
+                httpClient = new HttpClient(_httpClientHandler);
+            else
+                httpClient = new HttpClient();
+
+            try
+            {
+                httpClient.BaseAddress = new Uri(_url);
+            }
+            catch (Exception ex)
+            {
+                retorno.Erro = true;
+                retorno.MensagemErro = "Set BaseAddress";
+
+                acessosExternos.Atualizar(codAcessoExterno, retorno.MensagemErro, 404);
+                return retorno;
+            }
+
+            if (_authenticationHeader != null)
+            {
+                httpClient.DefaultRequestHeaders.Authorization = _authenticationHeader;
+            }
+
+            if ((_headersAccept != null) || (_headers != null))
+            {
+                httpClient.DefaultRequestHeaders.Accept.Clear();
+
+                if (_headersAccept != null)
+                {
+                    foreach (MediaTypeWithQualityHeaderValue headerAccept in _headersAccept)
+                    {
+                        httpClient.DefaultRequestHeaders.Accept.Add(headerAccept);
+                    }
+                }
+                if (_headers != null)
+                {
+                    foreach (KeyValuePair<string, string> header in _headers)
+                    {
+                        httpClient.DefaultRequestHeaders.Add(header.Key, header.Value);
+                    }
+                }
+            }
+
+            HttpResponseMessage response = null;
+            string responseBody = "";
+            byte[] responseBodyArrayByte = null;
+            try
+            {
+                httpClient.Timeout = TimeSpan.FromMinutes(_timeout);
+                response = httpClient.DeleteAsync(_url).Result;
+            }
+            catch (Exception ex)
+            {
+                if (ex.InnerException.ToString().Contains("TaskCanceledException"))
+                {
+                    retorno.Erro = true;
+                    retorno.MensagemErro = "TaskCanceledException";
+
+                    acessosExternos.Atualizar(codAcessoExterno, retorno.MensagemErro, 404);
+                }
+                else if (ex.InnerException.ToString().Contains("O nome remoto não pôde ser resolvido"))
+                {
+                    retorno.Erro = true;
+                    retorno.MensagemErro = "O nome remoto não pôde ser resolvido";
+
+                    acessosExternos.Atualizar(codAcessoExterno, retorno.MensagemErro, 404);
+                }
+                else if (ex.InnerException.ToString().Contains("Impossível conectar-se ao servidor remoto"))
+                {
+                    retorno.Erro = true;
+                    retorno.MensagemErro = "Impossível conectar-se ao servidor remoto";
+
+                    acessosExternos.Atualizar(codAcessoExterno, retorno.MensagemErro, 404);
+                }
+                else if (ex.InnerException.ToString().Contains("Foi forçado o cancelamento de uma conexão existente pelo host remoto"))
+                {
+                    retorno.Erro = true;
+                    retorno.MensagemErro = "Foi forçado o cancelamento de uma conexão existente pelo host remoto";
+
+                    acessosExternos.Atualizar(codAcessoExterno, retorno.MensagemErro, 404);
+                }
+                else
+                {
+                    retorno.Erro = true;
+                    retorno.MensagemErro = ex.InnerException.ToString();
+
+                    acessosExternos.Atualizar(codAcessoExterno, retorno.MensagemErro, 404);
+                }
+
+                return retorno;
+            }
+
+            try
+            {
+                if (_resultBodyString)
+                    responseBody = response.Content.ReadAsStringAsync().Result;
+                else
+                    responseBodyArrayByte = response.Content.ReadAsByteArrayAsync().Result;
+
+            }
+            catch (Exception ex)
+            {
+                retorno.Erro = true;
+                retorno.MensagemErro = ex.InnerException.ToString();
+
+                acessosExternos.Atualizar(codAcessoExterno, retorno.MensagemErro, 404);
+                return retorno;
+            }
+
+            responseBody = responseBody.Replace("'", "");
+
+            retorno.Body = responseBody;
+            retorno.BodyArrayByte = responseBodyArrayByte;
+            retorno.HttpStatusCode = response.StatusCode;
+            retorno.Headers = new List<KeyValuePair<string, string>>();
+            foreach (var headerItem in response.Headers)
+            {
+                foreach (var valueItem in response.Headers.GetValues(headerItem.Key))
+                {
+                    retorno.Headers.Add(new KeyValuePair<string, string>(headerItem.Key, valueItem));
+                }
+            }
+
+            acessosExternos.Atualizar(codAcessoExterno, responseBody, (int)response.StatusCode);
+            return retorno;
+        }
+
         protected virtual void Dispose(bool disposing)
         {
             if (!disposing)

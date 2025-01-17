@@ -76,6 +76,23 @@ namespace PIX_BancoDoBrasil.Models
             }
             return "";
         }
+        public static string webhookUrl()
+        {
+            if (ConfigurationManager.AppSettings["webhookUrl"] == null)
+                return "";
 
+            if (string.IsNullOrWhiteSpace(ConfigurationManager.AppSettings["webhookUrl"].ToString()))
+                return "";
+
+            try
+            {
+                return ConfigurationManager.AppSettings["webhookUrl"].ToString();
+            }
+            catch
+            {
+
+            }
+            return "";
+        }
     }
 }

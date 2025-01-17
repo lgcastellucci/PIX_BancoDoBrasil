@@ -2,8 +2,9 @@
 
 <asp:Content ID="BodyContent" ContentPlaceHolderID="MainContent" runat="server">
     <main aria-labelledby="title">
-        <h2 id="title"><%: Title %>.</h2>
         <h3>Geração de um PIX no Banco do Brasil.</h3>
-        <p></p>
+        <p>
+            <asp:Label ID="lblOSDescription" runat="server"></asp:Label> (<asp:Label ID="lblWindowsVersion" runat="server"></asp:Label>)
+        </p>
     </main>
 </asp:Content>

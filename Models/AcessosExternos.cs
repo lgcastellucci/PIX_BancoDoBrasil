@@ -13,7 +13,7 @@ namespace PIX_BancoDoBrasil.Models
 
             var sbInstrucao = new StringBuilder();
             sbInstrucao.Append(" INSERT INTO ACESSOS_EXTERNOS ");
-            sbInstrucao.Append("  ( DATA, COD_ACESSO, URL, REQUISICAO ) ");
+            sbInstrucao.Append("  ( DATA, COD_ACESSO, SERVIDOR, REQUISICAO ) ");
             sbInstrucao.Append(" VALUES ");
             sbInstrucao.Append(" ( ");
             sbInstrucao.Append("   GETDATE(), ");

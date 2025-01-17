@@ -52,7 +52,7 @@ namespace PIX_BancoDoBrasil
             if (!string.IsNullOrWhiteSpace(txtValor.Text))
                 valor = Convert.ToDouble(txtValor.Text);
 
-            var minhaIdentificacao = Guid.NewGuid().ToString().Replace("-", "");
+            var minhaIdentificacao = Guid.NewGuid().ToString();
 
             var payload = new
             {
