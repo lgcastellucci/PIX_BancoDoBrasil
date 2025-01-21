@@ -413,5 +413,56 @@ namespace PIX_BancoDoBrasil.Services
             return resposta;
         }
 
+
+        public Resposta SimularPagamento(string codAcesso, string accessToken, string strPayLoad)
+        {
+            string nomeFuncao = "SimularPagamento";
+            var resposta = new Resposta();
+
+            if (string.IsNullOrWhiteSpace(accessToken))
+                accessToken = PegarToken(codAcesso).accessToken;
+
+            //string url = "https://api.hm.bb.com.br/testes-portal-desenvolvedor/v1/boletos-pix/pagar?&gw-dev-app-key=" + ReadConf.developer_application_key();
+            string url = "https://api.hm.bb.com.br/testes-portal-desenvolvedor/v1/boletos-pix/pagar?&gw-dev-app-key=" + "95cad3f03fd9013a9d15005056825665";
+
+            var httpService = new HttpService(codAcesso, nomeFuncao);
+            httpService.HeaderAcceptAdd(new MediaTypeWithQualityHeaderValue("application/json"));
+            httpService.AuthenticationSet(new AuthenticationHeaderValue("Bearer", accessToken));
+            httpService.UrlSet(url);
+            httpService.IgnoreCertificateValidationSet();
+            httpService.PayLoadSet(strPayLoad, Encoding.UTF8, "application/json");
+            var retHttp = httpService.ExecutePost();
+
+            if (retHttp.HttpStatusCode != HttpStatusCode.OK)
+            {
+                resposta.mensagem = "HttpStatusCode: " + retHttp.HttpStatusCode;
+                return resposta;
+            }
+
+            JObject dataJson;
+            try
+            {
+                dataJson = JObject.Parse(retHttp.Body);
+            }
+            catch
+            {
+                resposta.mensagem = "JObject.Parse: " + retHttp.Body;
+                return resposta;
+            }
+
+            if (dataJson.SelectToken("txid") == null)
+            {
+                resposta.mensagem = "txid: " + retHttp.Body;
+                return resposta;
+            }
+            if (dataJson.SelectToken("status") == null)
+            {
+                resposta.mensagem = "status: " + retHttp.Body;
+                return resposta;
+            }
+
+            resposta.sucesso = true;
+            return resposta;
+        }
     }
 }

@@ -161,6 +161,10 @@
     <Content Include="Content\bootstrap.rtl.css" />
     <Content Include="Content\bootstrap.rtl.min.css" />
     <Content Include="Content\Site.css" />
+    <Content Include="Scripts\highlight.min.js" />
+    <Content Include="Scripts\html5-qrcode.min.js" />
+    <Content Include="Scripts\html5-qrcode.min.v2.3.0.js" />
+    <Content Include="SimularPagamento.aspx" />
     <Content Include="MeusPix.aspx" />
     <Content Include="Default.aspx" />
     <Content Include="favicon.ico" />
@@ -224,6 +228,13 @@
       <DependentUpon>Contato.aspx</DependentUpon>
     </Compile>
     <Compile Include="Controllers\WebhookController.cs" />
+    <Compile Include="SimularPagamento.aspx.cs">
+      <DependentUpon>SimularPagamento.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="SimularPagamento.aspx.designer.cs">
+      <DependentUpon>SimularPagamento.aspx</DependentUpon>
+    </Compile>
     <Compile Include="MeusPix.aspx.cs">
       <DependentUpon>MeusPix.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
