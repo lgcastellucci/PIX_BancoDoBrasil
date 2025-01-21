@@ -347,5 +347,71 @@ namespace PIX_BancoDoBrasil.Services
             return resposta;
         }
 
+        public RespostaStatusPix ConsultarPixPeloTxID(string codAcesso, string accessToken, string txid)
+        {
+            string nomeFuncao = "ConsultaPixPeloExtrato";
+            var resposta = new RespostaStatusPix();
+
+            if (string.IsNullOrWhiteSpace(accessToken))
+                accessToken = PegarToken(codAcesso).accessToken;
+
+            string url = "https://api.hm.bb.com.br/pix/v2/cob/" +txid + "?";
+            url += "&gw-dev-app-key=" + ReadConf.developer_application_key();
+
+            var httpService = new HttpService(codAcesso, nomeFuncao);
+            httpService.HeaderAcceptAdd(new MediaTypeWithQualityHeaderValue("application/json"));
+            httpService.AuthenticationSet(new AuthenticationHeaderValue("Bearer", accessToken));
+            httpService.UrlSet(url);
+            httpService.IgnoreCertificateValidationSet();
+            var retHttp = httpService.ExecuteGet();
+
+            if (retHttp.HttpStatusCode != HttpStatusCode.OK)
+            {
+                resposta.mensagem = "HttpStatusCode: " + retHttp.HttpStatusCode;
+                return resposta;
+            }
+
+            JObject dataJson;
+            try
+            {
+                dataJson = JObject.Parse(retHttp.Body);
+            }
+            catch
+            {
+                resposta.mensagem = "JObject.Parse: " + retHttp.Body;
+                return resposta;
+            }
+
+            if (dataJson.SelectToken("txid") == null)
+            {
+                resposta.mensagem = "txid: " + retHttp.Body;
+                return resposta;
+            }
+            if (dataJson.SelectToken("status") == null)
+            {
+                resposta.mensagem = "status: " + retHttp.Body;
+                return resposta;
+            }
+
+            if (dataJson.SelectToken("txid").ToString() != txid)
+            {
+                resposta.mensagem = "txid: " + retHttp.Body;
+                return resposta;
+            }
+
+
+            try
+            {
+                resposta.status = dataJson.SelectToken("status").ToString();
+            }
+            catch
+            {
+
+            }
+
+            resposta.sucesso = true;
+            return resposta;
+        }
+
     }
 }

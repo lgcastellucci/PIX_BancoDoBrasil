@@ -145,7 +145,8 @@ namespace PIX_BancoDoBrasil.Controllers
             }
 
             var bancoDoBrasil = new BancoDoBrasil();
-            var respostaConsultaPix = bancoDoBrasil.ConsultarPixPeloExtrato(codAcesso, "", devedorCpf, devedorNome, valor);
+            var respostaConsultaPix = bancoDoBrasil.ConsultarPixPeloTxID(codAcesso, "", txid);
+            //var respostaConsultaPix = bancoDoBrasil.ConsultarPixPeloExtrato(codAcesso, "", devedorCpf, devedorNome, valor);
 
             if (!respostaConsultaPix.sucesso)
             {
