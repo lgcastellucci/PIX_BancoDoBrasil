@@ -156,6 +156,8 @@ namespace PIX_BancoDoBrasil.Controllers
 
             var tabelaPix = new TabelaPix();
             tabelaPix.AtualizarStatus(codPix, respostaConsultaPix.status);
+            if (!string.IsNullOrWhiteSpace(respostaConsultaPix.e2e))
+                tabelaPix.AtualizarEndToEnd(codPix, respostaConsultaPix.e2e);
 
             respostaWebhook.status = "OK";
             respostaWebhook.mensagem = "Recebido com sucesso";

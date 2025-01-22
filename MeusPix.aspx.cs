@@ -35,6 +35,7 @@ namespace PIX_BancoDoBrasil
                 sbInstrucao.Append(" SELECT COD_PIX, MEU_ID, DEVEDOR_CPF, DEVEDOR_NOME, DATA, VALOR, DATA_STATUS, STATUS ");
                 sbInstrucao.Append(" FROM PIX ");
                 //sbInstrucao.Append(" WHERE TXID = '" + txid + "'");
+                sbInstrucao.Append(" ORDER BY COD_PIX DESC ");
 
                 using (var cmd = new SqlCommand(sbInstrucao.ToString(), sqlConnection))
                 {

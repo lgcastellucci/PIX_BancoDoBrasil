@@ -1,7 +1,7 @@
 ﻿<%@ Page Title="PIX_BancoDoBrasil" Language="C#" MasterPageFile="~/Site.Master" AutoEventWireup="true" CodeBehind="MeusPix.aspx.cs" Inherits="PIX_BancoDoBrasil.MeusPix" %>
 
 <asp:Content ID="BodyContent" ContentPlaceHolderID="MainContent" runat="server">
-    <main class="d-flex justify-content-center align-items-center" style="height: 100vh;">
+    <main class="d-flex justify-content-center align-items-center">
         <div class="d-flex justify-content-center">
             <div id="divPixEmitidos" runat="server" class="rounded p-4" style="border: 1px solid #ccc; display: block;">
                 <div class="row justify-content-center mb-3">
@@ -21,7 +21,7 @@
                                 <asp:BoundField DataField="STATUS" HeaderText="Status" />
                             </Columns>
                         </asp:GridView>
-                        <div class="text-right mt-3">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
                             <asp:Label ID="lblUltimaAtualizacao" runat="server" CssClass="text-muted"></asp:Label>
                         </div>
                     </section>
