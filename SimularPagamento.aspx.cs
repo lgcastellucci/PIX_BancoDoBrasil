@@ -2,6 +2,9 @@
 using PIX_BancoDoBrasil.Models;
 using PIX_BancoDoBrasil.Services;
 using System;
+using System.Configuration;
+using System.Data.SqlClient;
+using System.Text;
 using System.Web.UI;
 
 namespace PIX_BancoDoBrasil
@@ -50,6 +53,39 @@ namespace PIX_BancoDoBrasil
                 acessos.Atualizar(codAcesso, "", "", respSimularPagamento.mensagem);
                 return;
             }
+
+            string connectionString = ConfigurationManager.ConnectionStrings["dbConnection"].ConnectionString;
+            using (var sqlConnection = new SqlConnection(connectionString))
+            {
+                sqlConnection.Open();
+
+                var sbInstrucao = new StringBuilder();
+                sbInstrucao.Remove(0, sbInstrucao.Length);
+                sbInstrucao.Append(" SELECT COD_PIX, TXID ");
+                sbInstrucao.Append(" FROM PIX ");
+                sbInstrucao.Append(" WHERE PIX_COPIA_E_COLA = '" + qrCodeMessage + "'");
+                using (var cmd = new SqlCommand(sbInstrucao.ToString(), sqlConnection))
+                {
+                    var dataReader = cmd.ExecuteReader();
+                    if (dataReader.HasRows)
+                    {
+                        while (dataReader.Read())
+                        {
+                            var respostaConsultaPix = bancoDoBrasil.ConsultarPixPeloTxID(codAcesso, respAccessToken.accessToken, dataReader["TXID"].ToString());
+                            if (respostaConsultaPix.sucesso)
+                            {
+                                var tabelaPix = new TabelaPix();
+                                tabelaPix.AtualizarStatus(dataReader["COD_PIX"].ToString(), respostaConsultaPix.status);
+                                if (!string.IsNullOrWhiteSpace(respostaConsultaPix.e2e))
+                                    tabelaPix.AtualizarEndToEnd(dataReader["COD_PIX"].ToString(), respostaConsultaPix.e2e);
+                            }
+
+                        }
+                    }
+                }
+            }
+
+
         }
     }
 }

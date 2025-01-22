@@ -42,14 +42,25 @@ namespace PIX_BancoDoBrasil.Services
                 pixCopiaECola = "";
             }
         }
-        public class RespostaStatusPix : Resposta
+        public class RespostaConsultarPix : Resposta
         {
             public string status { get; set; }
-            public RespostaStatusPix()
+            public string e2e { get; set; }
+            public RespostaConsultarPix()
             {
                 status = "";
+                e2e = "";
             }
         }
+        public class RespostaSimularPagamento : Resposta
+        {
+            public string e2e { get; set; }
+            public RespostaSimularPagamento()
+            {
+                e2e = "";
+            }
+        }
+
         public RespostaToken PegarToken(string codAcesso)
         {
             string nomeFuncao = "PegarToken";
@@ -269,10 +280,10 @@ namespace PIX_BancoDoBrasil.Services
             return resposta;
         }
 
-        public RespostaStatusPix ConsultarPixPeloExtrato(string codAcesso, string accessToken, string devedorCPF, string devedorNome, string valor)
+        public RespostaConsultarPix ConsultarPixPeloExtrato(string codAcesso, string accessToken, string devedorCPF, string devedorNome, string valor)
         {
             string nomeFuncao = "ConsultaPixPeloExtrato";
-            var resposta = new RespostaStatusPix();
+            var resposta = new RespostaConsultarPix();
 
             if (string.IsNullOrWhiteSpace(accessToken))
                 accessToken = PegarToken(codAcesso).accessToken;
@@ -347,15 +358,15 @@ namespace PIX_BancoDoBrasil.Services
             return resposta;
         }
 
-        public RespostaStatusPix ConsultarPixPeloTxID(string codAcesso, string accessToken, string txid)
+        public RespostaConsultarPix ConsultarPixPeloTxID(string codAcesso, string accessToken, string txid)
         {
-            string nomeFuncao = "ConsultaPixPeloExtrato";
-            var resposta = new RespostaStatusPix();
+            string nomeFuncao = "ConsultarPixPeloTxID";
+            var resposta = new RespostaConsultarPix();
 
             if (string.IsNullOrWhiteSpace(accessToken))
                 accessToken = PegarToken(codAcesso).accessToken;
 
-            string url = "https://api.hm.bb.com.br/pix/v2/cob/" +txid + "?";
+            string url = "https://api.hm.bb.com.br/pix/v2/cob/" + txid + "?";
             url += "&gw-dev-app-key=" + ReadConf.developer_application_key();
 
             var httpService = new HttpService(codAcesso, nomeFuncao);
@@ -399,7 +410,6 @@ namespace PIX_BancoDoBrasil.Services
                 return resposta;
             }
 
-
             try
             {
                 resposta.status = dataJson.SelectToken("status").ToString();
@@ -409,15 +419,25 @@ namespace PIX_BancoDoBrasil.Services
 
             }
 
+            if (dataJson.SelectToken("pix") != null)
+            {
+                try
+                {
+                    if (dataJson.SelectToken("pix")[0].SelectToken("endToEndId") != null)
+                        resposta.e2e = dataJson.SelectToken("pix")[0].SelectToken("endToEndId").ToString();
+                }
+                catch
+                { }
+            }
+
             resposta.sucesso = true;
             return resposta;
         }
 
-
-        public Resposta SimularPagamento(string codAcesso, string accessToken, string strPayLoad)
+        public RespostaSimularPagamento SimularPagamento(string codAcesso, string accessToken, string strPayLoad)
         {
             string nomeFuncao = "SimularPagamento";
-            var resposta = new Resposta();
+            var resposta = new RespostaSimularPagamento();
 
             if (string.IsNullOrWhiteSpace(accessToken))
                 accessToken = PegarToken(codAcesso).accessToken;
@@ -436,7 +456,7 @@ namespace PIX_BancoDoBrasil.Services
             if (retHttp.HttpStatusCode != HttpStatusCode.OK)
             {
                 resposta.mensagem = "HttpStatusCode: " + retHttp.HttpStatusCode;
-                return resposta;
+                //return resposta;
             }
 
             JObject dataJson;
@@ -450,19 +470,33 @@ namespace PIX_BancoDoBrasil.Services
                 return resposta;
             }
 
-            if (dataJson.SelectToken("txid") == null)
+            if (dataJson.SelectToken("code") == null)
             {
-                resposta.mensagem = "txid: " + retHttp.Body;
+                resposta.mensagem = "code: " + retHttp.Body;
                 return resposta;
             }
-            if (dataJson.SelectToken("status") == null)
+            if (dataJson.SelectToken("texto") == null)
             {
-                resposta.mensagem = "status: " + retHttp.Body;
+                resposta.mensagem = "texto: " + retHttp.Body;
                 return resposta;
             }
 
+            if (dataJson.SelectToken("code").ToString() != "1")
+            {
+                resposta.mensagem = "code: " + retHttp.Body;
+                return resposta;
+            }
+            if (string.IsNullOrWhiteSpace(dataJson.SelectToken("texto").ToString()))
+            {
+                resposta.mensagem = "texto: " + retHttp.Body;
+                return resposta;
+            }
+
+
             resposta.sucesso = true;
+            resposta.e2e = dataJson.SelectToken("texto").ToString();
             return resposta;
         }
+
     }
 }

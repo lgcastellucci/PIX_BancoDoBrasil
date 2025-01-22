@@ -74,7 +74,6 @@ namespace PIX_BancoDoBrasil.Models
                 sqlConnection.Close();
             }
         }
-
         public void AtualizarStatus(string codPix, string status)
         {
             if (string.IsNullOrEmpty(codPix))
@@ -99,6 +98,30 @@ namespace PIX_BancoDoBrasil.Models
                 sqlConnection.Close();
             }
         }
+        public void AtualizarEndToEnd(string codPix, string e2eID)
+        {
+            if (string.IsNullOrEmpty(codPix))
+                return;
+
+            var sbInstrucao = new StringBuilder();
+            sbInstrucao.Append(" UPDATE PIX ");
+            sbInstrucao.Append(" SET ");
+            sbInstrucao.Append("   END_TO_END = '" + e2eID + "' ");
+            sbInstrucao.Append(" WHERE COD_PIX = " + codPix);
+
+            using (var sqlConnection = new SqlConnection(connectionString))
+            {
+                sqlConnection.Open();
+
+                using (var command = new SqlCommand(sbInstrucao.ToString(), sqlConnection))
+                {
+                    command.ExecuteNonQuery();
+                }
+
+                sqlConnection.Close();
+            }
+        }
+
     }
 
 }
