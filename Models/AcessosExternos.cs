@@ -7,19 +7,20 @@ namespace PIX_BancoDoBrasil.Models
     public class AcessosExternos
     {
         readonly string connectionString = ConfigurationManager.ConnectionStrings["dbConnection"].ConnectionString;
-        public string Inserir(string codAcesso = null, string url = null, string requicao = null)
+        public string Inserir(string codAcesso, string url, string cabecalho, string requicao)
         {
             string codAcessoExterno = "";
 
             var sbInstrucao = new StringBuilder();
             sbInstrucao.Append(" INSERT INTO ACESSOS_EXTERNOS ");
-            sbInstrucao.Append("  ( DATA, COD_ACESSO, SERVIDOR, REQUISICAO ) ");
+            sbInstrucao.Append("  ( DATA, COD_ACESSO, SERVIDOR, CABECALHO, REQUISICAO ) ");
             sbInstrucao.Append(" VALUES ");
             sbInstrucao.Append(" ( ");
             sbInstrucao.Append("   GETDATE(), ");
-            sbInstrucao.Append(string.IsNullOrEmpty(codAcesso) ? " NULL, " : " '" + codAcesso + "', ");
-            sbInstrucao.Append(string.IsNullOrEmpty(url) ? " NULL, " : " '" + url + "', ");
-            sbInstrucao.Append(string.IsNullOrEmpty(requicao) ? " NULL " : " '" + requicao + "' ");
+            sbInstrucao.Append(string.IsNullOrWhiteSpace(codAcesso) ? " NULL, " : " '" + codAcesso + "', ");
+            sbInstrucao.Append(string.IsNullOrWhiteSpace(url) ? " NULL, " : " '" + url + "', ");
+            sbInstrucao.Append(string.IsNullOrWhiteSpace(cabecalho) ? " NULL, " : " '" + cabecalho + "', ");
+            sbInstrucao.Append(string.IsNullOrWhiteSpace(requicao) ? " NULL " : " '" + requicao + "' ");
             sbInstrucao.Append(" ) ");
             using (var sqlConnection = new SqlConnection(connectionString))
             {

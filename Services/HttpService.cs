@@ -1,4 +1,5 @@
-﻿using PIX_BancoDoBrasil.Models;
+﻿using Newtonsoft.Json;
+using PIX_BancoDoBrasil.Models;
 using System;
 using System.Collections.Generic;
 using System.Net;
@@ -144,7 +145,26 @@ namespace PIX_BancoDoBrasil.Services
             var retorno = new Retorno();
             var dataInicio = DateTime.Now;
             var acessosExternos = new AcessosExternos();
-            var codAcessoExterno = acessosExternos.Inserir(_codAcesso, _url, _content);
+
+            string jsonHeaders = "";
+            if ((_authenticationHeader != null) || (_headersAccept != null) || (_headers != null))
+            {
+                var headersDictionary = new Dictionary<string, string>();
+                if (_authenticationHeader != null)
+                    headersDictionary[_authenticationHeader.Scheme] = string.Join(",", _authenticationHeader.Parameter);
+
+                if (_headersAccept != null)
+                    foreach (MediaTypeWithQualityHeaderValue headerAccept in _headersAccept)
+                        headersDictionary["Accept"] = string.Join(",", headerAccept.MediaType);
+
+                if (_headers != null)
+                    foreach (KeyValuePair<string, string> header in _headers)
+                        headersDictionary[header.Key] = string.Join(",", header.Value);
+
+                jsonHeaders = JsonConvert.SerializeObject(headersDictionary);
+            }
+
+            var codAcessoExterno = acessosExternos.Inserir(_codAcesso, _url, jsonHeaders, _content);
 
             if (_ignoreCertificateValidation)
                 ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
@@ -288,7 +308,26 @@ namespace PIX_BancoDoBrasil.Services
             var retorno = new Retorno();
             var dataInicio = DateTime.Now;
             var acessosExternos = new AcessosExternos();
-            var codAcessoExterno = acessosExternos.Inserir(_codAcesso, _url, _content);
+
+            string jsonHeaders = "";
+            if ((_authenticationHeader != null) || (_headersAccept != null) || (_headers != null))
+            {
+                var headersDictionary = new Dictionary<string, string>();
+                if (_authenticationHeader != null)
+                    headersDictionary[_authenticationHeader.Scheme] = string.Join(",", _authenticationHeader.Parameter);
+
+                if (_headersAccept != null)
+                    foreach (MediaTypeWithQualityHeaderValue headerAccept in _headersAccept)
+                        headersDictionary["Accept"] = string.Join(",", headerAccept.MediaType);
+
+                if (_headers != null)
+                    foreach (KeyValuePair<string, string> header in _headers)
+                        headersDictionary[header.Key] = string.Join(",", header.Value);
+
+                jsonHeaders = JsonConvert.SerializeObject(headersDictionary);
+            }
+
+            var codAcessoExterno = acessosExternos.Inserir(_codAcesso, _url, jsonHeaders, _content);
 
             if (_ignoreCertificateValidation)
                 ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
@@ -427,7 +466,26 @@ namespace PIX_BancoDoBrasil.Services
             var retorno = new Retorno();
             var dataInicio = DateTime.Now;
             var acessosExternos = new AcessosExternos();
-            var codAcessoExterno = acessosExternos.Inserir(_codAcesso, _url, _content);
+
+            string jsonHeaders = "";
+            if ((_authenticationHeader != null) || (_headersAccept != null) || (_headers != null))
+            {
+                var headersDictionary = new Dictionary<string, string>();
+                if (_authenticationHeader != null)
+                    headersDictionary[_authenticationHeader.Scheme] = string.Join(",", _authenticationHeader.Parameter);
+
+                if (_headersAccept != null)
+                    foreach (MediaTypeWithQualityHeaderValue headerAccept in _headersAccept)
+                        headersDictionary["Accept"] = string.Join(",", headerAccept.MediaType);
+
+                if (_headers != null)
+                    foreach (KeyValuePair<string, string> header in _headers)
+                        headersDictionary[header.Key] = string.Join(",", header.Value);
+
+                jsonHeaders = JsonConvert.SerializeObject(headersDictionary);
+            }
+
+            var codAcessoExterno = acessosExternos.Inserir(_codAcesso, _url, jsonHeaders, _content);
 
             if (_ignoreCertificateValidation)
                 ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
@@ -556,12 +614,6 @@ namespace PIX_BancoDoBrasil.Services
         }
 
 
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
         public Retorno ExecuteDelete()
         {
             Retorno retorno = ExecuteDeleteAsync().Result;
@@ -572,7 +624,26 @@ namespace PIX_BancoDoBrasil.Services
             var retorno = new Retorno();
             var dataInicio = DateTime.Now;
             var acessosExternos = new AcessosExternos();
-            var codAcessoExterno = acessosExternos.Inserir(_codAcesso, _url, _content);
+
+            string jsonHeaders = "";
+            if ((_authenticationHeader != null) || (_headersAccept != null) || (_headers != null))
+            {
+                var headersDictionary = new Dictionary<string, string>();
+                if (_authenticationHeader != null)
+                    headersDictionary[_authenticationHeader.Scheme] = string.Join(",", _authenticationHeader.Parameter);
+
+                if (_headersAccept != null)
+                    foreach (MediaTypeWithQualityHeaderValue headerAccept in _headersAccept)
+                        headersDictionary["Accept"] = string.Join(",", headerAccept.MediaType);
+
+                if (_headers != null)
+                    foreach (KeyValuePair<string, string> header in _headers)
+                        headersDictionary[header.Key] = string.Join(",", header.Value);
+
+                jsonHeaders = JsonConvert.SerializeObject(headersDictionary);
+            }
+
+            var codAcessoExterno = acessosExternos.Inserir(_codAcesso, _url, jsonHeaders, _content);
 
             if (_ignoreCertificateValidation)
                 ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
@@ -705,6 +776,12 @@ namespace PIX_BancoDoBrasil.Services
             return retorno;
         }
 
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
         protected virtual void Dispose(bool disposing)
         {
             if (!disposing)
