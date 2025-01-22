@@ -1,7 +1,14 @@
 # PIX_BancoDoBrasil
 Utilização da API do Banco do Brasil para gerar PIX
 
-Para iniciar o projeto é necessário ter um cadastro no BB Developers para receber as credenciais de acesso.
+
+Essa aplicação está publicada com tres funcionalidades
+- https://castellucci.net.br/PixBancoDoBrasil - Para criar um pix informando o CPF/CNPJ do pagador e o valor, então será acessado o BB e gerado um QRCode monstrando na tela o mesmo
+- https://castellucci.net.br/PixBancoDoBrasil/MeusPix - Para listar os Pix gerados e seu status
+- https://castellucci.net.br/PixBancoDoBrasil/SimularPagamento - Para simular o pagamento enviando ao BB um pagamento do PIX, esse seria o papela do App do banco do pagador, mas como estamos em homologação aqui esta uma interface simulando o App do banco do pagador
+
+
+Para iniciar seu desenvolvimento é necessário ter um cadastro no BB Developers para receber as credenciais de acesso.
 
 
 Primeiramente efetue o cadastro conform os passos abaixo
