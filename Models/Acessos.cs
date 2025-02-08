@@ -59,7 +59,7 @@ namespace PIX_BancoDoBrasil.Models
             sbInstrucao.Append(" SET RESPOSTA = ").Append(string.IsNullOrWhiteSpace(resposta) ? " NULL, " : " '" + resposta + "', ");
             sbInstrucao.Append("     RESPOSTA_DATA = ").Append(string.IsNullOrWhiteSpace(resposta) ? " NULL, " : " GETDATE(), ");
             sbInstrucao.Append("     COD_RETORNO_INTERNO = ").Append(string.IsNullOrWhiteSpace(codRetornoInterno) ? " NULL, " : " '" + codRetornoInterno + "', ");
-            sbInstrucao.Append("     OCORRENCIA = ").Append(string.IsNullOrWhiteSpace(Ocorrencia) ? " NULL, " : " '" + Ocorrencia + "' ");
+            sbInstrucao.Append("     OCORRENCIA = ").Append(string.IsNullOrWhiteSpace(Ocorrencia) ? " NULL " : " '" + Ocorrencia + "' ");
             sbInstrucao.Append(" WHERE COD_ACESSO = " + codAcesso);
 
             using (SqlConnection sqlConnection = new SqlConnection(connectionString))

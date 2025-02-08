@@ -109,6 +109,9 @@ namespace PIX_BancoDoBrasil
 
             //hiddenDataExpiracao.Value = dataExpiracao.ToString("o"); // Formato ISO 8601
             //ScriptManager.RegisterStartupScript(this, GetType(), "iniciarContagemRegressiva", "iniciarContagemRegressiva();", true);
+
+
+            ScriptManager.RegisterStartupScript(this, GetType(), "checarStatusQRCode", $"checarStatusQRCode('{minhaIdentificacao}');", true);
         }
 
 

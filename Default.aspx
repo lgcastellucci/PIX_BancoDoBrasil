@@ -41,6 +41,18 @@
 
             setInterval(updateCountdown, 1000);
         }
+        function checarStatusQRCode(minhaIdentificacao) {
+            $.ajax({
+                url: '/consulta/BancodDoBrasil/pix/' + minhaIdentificacao,
+                type: 'GET',
+                success: function (data) {
+                    $('#status').text('Situacao do pagamento: ' + data.status);
+                },
+                error: function (error) {
+                    console.error('Erro ao checar status do QR Code:', error);
+                }
+            });
+        }
 
     </script>
 
@@ -94,6 +106,11 @@
                     </section>
                 </div>
                 <asp:HiddenField ID="hiddenDataExpiracao" runat="server" />
+                <div class="row justify-content-center mb-3">
+                    <section class="col-md-12 text-center">
+                        <asp:Label ID="statusQRCode" runat="server" Text="Aguardando pagamento..." />
+                    </section>
+                </div>
             </div>
         </div>
     </main>

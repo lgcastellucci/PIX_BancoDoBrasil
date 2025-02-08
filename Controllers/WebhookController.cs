@@ -30,7 +30,7 @@ namespace PIX_BancoDoBrasil.Controllers
 
         [AcceptVerbs("POST")]
         [Route("webhook/BancodDoBrasil/pix")]
-        public HttpResponseMessage ProcessaPixItau(JObject value)
+        public HttpResponseMessage ProcessaPixBancodDoBrasil(JObject value)
         {
             var respostaWebhook = new RespostaWebhook();
 
