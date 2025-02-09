@@ -111,7 +111,7 @@ namespace PIX_BancoDoBrasil
             //ScriptManager.RegisterStartupScript(this, GetType(), "iniciarContagemRegressiva", "iniciarContagemRegressiva();", true);
 
 
-            ScriptManager.RegisterStartupScript(this, GetType(), "checarStatusQRCode", $"checarStatusQRCode('{minhaIdentificacao}');", true);
+            ScriptManager.RegisterStartupScript(this, GetType(), "iniciarChecagemStatus", $"iniciarChecagemStatus('{minhaIdentificacao}');", true);
         }
 
 

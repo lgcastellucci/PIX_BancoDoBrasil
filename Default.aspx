@@ -41,12 +41,24 @@
 
             setInterval(updateCountdown, 1000);
         }
+
+
+        function iniciarChecagemStatus(minhaIdentificacao) {
+            intervalId = setInterval(function () {
+                checarStatusQRCode(minhaIdentificacao);
+            }, 1000);
+        }
+
         function checarStatusQRCode(minhaIdentificacao) {
             $.ajax({
                 url: '/consulta/BancodDoBrasil/pix/' + minhaIdentificacao,
                 type: 'GET',
                 success: function (data) {
-                    $('#status').text('Situacao do pagamento: ' + data.status);
+                    var response = JSON.parse(data);
+                    $('#<%= statusQRCode.ClientID %>').text('Situação do pagamento: ' + response.status);
+                    if (response.status === 'CONCLUIDA') {
+                        clearInterval(intervalId);
+                    }
                 },
                 error: function (error) {
                     console.error('Erro ao checar status do QR Code:', error);
